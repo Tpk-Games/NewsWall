@@ -1,2 +1,5 @@
-# NewsWall
-Plugin to Mybb 1.8 adding new page with news wall.
+# Nginx VirtualHost script
+This page is about simply bash script to create a new nginx v-host instance.
+
+## How to use?
+Will be soon...
