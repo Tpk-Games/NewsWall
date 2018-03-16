@@ -10,8 +10,13 @@ Default all domains have a ".local" extenstion.
 
 ###### Obviously `<name>` is your vhost name. ######
 
+## Note
+Warning! Default php version is **PHP 7.2-FPM** if you use other. You should change it!
+Additional at the top you can edit a paths in cvhost.sh file.
+
 ## Todo:
 - Own domain extension
+- Use sed replace echo in hosts file
 - Remove v-host
 - Edit v-host
 - Maybe Apache support
