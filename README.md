@@ -3,7 +3,7 @@ This page is about simply bash script to create a new nginx v-host instance.
 Default all domains have a ".local" extenstion.
 
 ## How to use? - simply!
-1. Add a executable privileges
+1. Add a executable privileges `chmod +x cvhost.sh`
 2. Run script with sudo, like this:
 `sudo ./cvhost.sh <name>`
 Obviosly <name> is your vhost name.
