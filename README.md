@@ -14,6 +14,9 @@ Default all domains have a ".local" extenstion.
 Warning! Default php version is **PHP 7.2-FPM** if you use other. You should change it!<br>
 Additional at the top you can edit a paths in cvhost.sh file.
 
+## Screenshot
+![sample.png](https://github.com/r0v/Nginx-vHost/blob/master/sample.png)
+
 ## Todo:
 - Own domain extension
 - Use sed replace echo in hosts file
