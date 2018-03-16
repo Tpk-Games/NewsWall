@@ -18,8 +18,8 @@ Additional at the top you can edit a paths in cvhost.sh file.
 ![sample.png](https://github.com/r0v/Nginx-vHost/blob/master/sample.png)
 
 ## Todo:
-- Own domain extension
-- Use sed replace echo in hosts file
-- Remove v-host
-- Edit v-host
-- Maybe Apache support
+- [ ] Own domain extension
+- [ ] Use sed replace echo in hosts file
+- [ ] Remove v-host
+- [ ] Edit v-host
+- [ ] Maybe Apache support
