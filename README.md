@@ -6,9 +6,9 @@ Default all domains have a ".local" extenstion.
 1. Add a executable privileges `chmod +x cvhost.sh`
 2. Run script with sudo, like this:
 `sudo ./cvhost.sh <name>`
-###### Obviously <name> is your vhost name. ######
-
 3.Done
+
+###### Obviously <name> is your vhost name. ######
 
 ## Todo:
 - Own domain extension
