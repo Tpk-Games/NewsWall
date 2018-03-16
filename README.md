@@ -8,7 +8,7 @@ Default all domains have a ".local" extenstion.
 `sudo ./cvhost.sh <name>`
 3.Done
 
-###### Obviously <name> is your vhost name. ######
+###### Obviously `<name>` is your vhost name. ######
 
 ## Todo:
 - Own domain extension
