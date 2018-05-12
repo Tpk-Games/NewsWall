@@ -26,4 +26,5 @@ Open script in your favourite editor, go to **168** line and change it.
 - [ ] Use sed replace echo in hosts file
 - [X] Remove v-host
 - [ ] Edit v-host
+- [ ] View exists site list
 - [ ] Maybe Apache support
