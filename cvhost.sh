@@ -5,24 +5,26 @@
 #  DESCRIPTION: Simple nginx v-host add/remove script
 #===================
 
-# Variables
-directoryRoot=/var/www/html/
-siteAvaliable=/etc/nginx/sites-available/
-siteEnabled=/etc/nginx/sites-enabled/
-logPath=/var/log/vhost/
-domainExt="local"
-domainName="example"
+# Global variables
+currentData=$(date +"%F")
 
-function flash(){
+_directoryRoot=/var/www/html/
+_siteAvaliable=/etc/nginx/sites-available/
+_siteEnabled=/etc/nginx/sites-enabled/
+_logPath=/var/log/vhost/
+_defaultExt="local"
+_defaultName="example"
+
+function flashMessage(){
 
     RED="\e[0;31m"
     GREEN="\e[0;32m"
     YELLOW="\e[0;33m"
-    BLUE="\e[0;34m"
+    CYAN="\e[0;36m"
     NC="\e[0m"
 
     if [ $# -lt 1 ]; then
-        echo -e "${BLUE}Usage: ${GREEN}$0 ${BLUE}must be minimum one args:$NC ${RED}message$NC"
+        echo -e "${CYAN}Usage: ${GREEN}$0 ${CYAN}must be minimum one args:$NC ${RED}message$NC"
         exit 1
     elif [ $# -eq 1 ]; then
         echo -e "[${GREEN}√${NC}] - ${YELLOW}$1${NC}"
@@ -35,21 +37,36 @@ function flash(){
                 echo -e "${RED}$2${NC}"
             ;;
             -i)
-                echo -e "${BLUE}$2${NC}"
+                echo -e "${CYAN}$2${NC}"
             ;;
             -o)
                 echo -e "${GREEN}$2${NC}"
             ;;
         esac
     else
-        echo -e "${RED}Something went wrong!${NC} ${BLUE}Too much args.${NC}"
+        echo -e "${RED}Something went wrong!${NC} ${CYAN}Too much args.${NC}"
     fi
 }
 
-function boot(){
-    clear
+function vaildDomain(){
 
-    currentData=$(date +"%F")
+    if [[ $1 =~ \. ]]; then
+
+        local domain=$(echo ${1%%.*} | tr '[:upper:]' '[:lower:]')
+        local tld=$(echo ${1##*.} | tr '[:upper:]' '[:lower:]')
+
+        [[ -z $domain ]] && echo -n $_defaultName || echo -n $domain
+        echo -n "."
+        [[ -z $tld ]] && echo -n $_defaultExt || echo -n $tld
+
+    else
+        flashMessage -d "Bye, bye..." 
+        exit 1
+    fi
+}
+
+function bootUp(){
+    reset
 
     echo -ne "Work in progress"
     for i in {1..3} 
@@ -57,62 +74,55 @@ function boot(){
         sleep 0.2
         echo -n "."
     done
-    echo -n "log was writing in ${logPath}log_${currentData}.log" 
+
+    if [ ! -d $_logPath ]; then
+        sudo mkdir $_logPath
+    fi
+
+    echo -n "log was writing in ${_logPath}log_${currentData}.log" 
     echo ""
+
+    ## PHP installed checker.
 }
 
-if [ $# -le 1 ]; then
-    
-    # Less then or equal 1 params
-    flash -i "Usage: <action> <vhost-name>"
+function addOption(){
+            
+    # Init message
+    bootUp
 
-elif [ $# -eq 2 ]; then
-    case "$1" in 
-        "add")
-            # Init message
-            boot
+    # Start script
+    domainName=$(vaildDomain $2)
 
-            # Start script
+    # Create a root directory
+    cd $_directoryRoot;
+    if [ -d "$domainName" ]; then
+        flashMessage -w "Warning, a file with that name exists, in $_directoryRoot"
+    else
+        mkdir "$domainName"
+        flashMessage "Create a root directory."
+    fi
 
-            if [[ $2 =~ \. ]]; then
-                domainName=$(echo $2 | sed 's/\.[a-z.]*//')
-                domainExt=$(echo $2 | sed 's/[a-z.]*\.//')
-            else
-                domainName=$(echo $2 | tr -d ./ )
-            fi
+    # Create a configuration file
+    cd $_siteAvaliable
 
-            # Create a root directory
-            cd $directoryRoot;
-            directoryName=$(echo "$domainName.$domainExt" | tr [:upper:] [:lower:])
-            if [ -d "$directoryName" ]; then
-                flash -w "Warning, a file with that name exists, in $directoryRoot"
-            else
-                mkdir "$directoryName"
-                flash "Create a root directory."
-            fi
-
-            confName=$directoryName
-
-            # Create a configuration file
-            cd $siteAvaliable
-
-            if [ -e $siteAvaliable$confName ]; then
-                flash -d "Error! Configuration file is exists."
-            else
-                echo "server {
+    if [ -e $_siteAvaliable$domainName ]; then
+        flashMessage -d "Error! Configuration file is exists."
+        exit 1
+    else
+        sudo echo "server {
         listen 80;
         listen [::]:80;
 
         # Error, access ecetra
-        error_log /var/log/nginx/$confName.error error;
-        access_log /var/log/nginx/$confName.access;
+        error_log /var/log/nginx/$domainName.error error;
+        access_log /var/log/nginx/$domainName.access;
 
-        root /var/www/html/$confName;
+        root /var/www/html/$domainName;
 
         # Add PHP support
         index index.php index.html index.htm index.nginx.debian.html;
 
-        server_name $confName www.$confName;
+        server_name $domainName www.$domainName;
 
         location / {
             try_files \$uri \$uri/ =404;
@@ -123,103 +133,109 @@ elif [ $# -eq 2 ]; then
             include snippets/fastcgi-php.conf;
             fastcgi_pass unix:/var/run/php/php7.2-fpm.sock;
         }
-}" > $siteAvaliable$confName
-                flash "Create a configuration file"
-            fi
+}" > $_siteAvaliable$domainName
+        flashMessage "Create a configuration file"
+    fi
 
-            # Edit hosts file
-            sudo echo "127.0.0.1    localhost.localdomain $confName www.$confName" >> /etc/hosts # TODO: change on sed
-            flash "Edit hosts file"
+    # Edit hosts file
+    sudo echo "127.0.0.1    localhost.localdomain $domainName www.$domainName" >> /etc/hosts
+    flashMessage "Edit hosts file"
 
-            # Add symlink
-            if [ -h $siteEnabled$directoryName ]; then
-                flash -w "Sorry, I can't add a symlink which exists!"
+    # Add symlink
+    if [ -h $_siteEnabled$domainName ]; then
+        flashMessage -w "Sorry, I can't add a symlink which exists!"
+    else
+        sudo ln -s $_siteAvaliable$domainName $_siteEnabled$domainName
+        flashMessage "Add symlink correct"
+    fi
+
+    # Create sample file
+    if [ ! -f "$_directoryRoot$domainName/index.php" ]; then
+        echo "<?php
+            phpinfo();
+        ?>" > "$_directoryRoot$domainName/index.php"
+        flashMessage "Create a sample PHP file"
+    else
+        flashMessage -d "Example page file exits!"
+    fi
+
+    # Reload ngnix
+    sudo service nginx restart |& tee -a "${_logPath}log_${currentData}.log" &> /dev/null
+    flashMessage "Reload nginx server"
+
+    # End
+    flashMessage -o "Nice work! Your v-host is now active, you can looking this at the http://$domainName/"
+
+}
+
+function remOption {
+            
+            domainName=$(vaildDomain $2)
+
+            if [ $domainName = "example.local" ]; then
+                
+                exit 1
+                
             else
-                sudo ln -s $siteAvaliable$directoryName $siteEnabled$directoryName
-                flash "Add symlink correct"
-            fi
 
-            # Create sample file & other stuff
-            if [ ! -d $logPath ]; then
-                sudo mkdir $logPath
-            fi
+                cd $_directoryRoot
+                if [ -d "$domainName" ]; then
+                    echo -n "Are you sure? Delete $domainName? (Yes/No) "
+                    read bar
+                    if [[ "$bar" =~ [yY] || [yY][eE][sS] ]]; then
 
-            if [ ! -f "$directoryRoot$directoryName/index.php" ]; then
-                echo "<?php
-                        phpinfo();
-                    ?>" > "$directoryRoot$directoryName/index.php"
-                flash "Create a sample PHP file"
-            else
-                flash -d "Example page file exits!"
-            fi
+                        # Remove a root directory
+                        sudo rm -r $domainName
+                        flashMessage "Remove a root directory"
 
-            # Add from list pages
-            ### NEW FEATURE v3.0 ###
+                        # Remove a configuration file
+                        cd $_siteAvaliable
+                        if [ -f "$domainName" ]; then 
+                            sudo rm $domainName
+                            flashMessage "Remove a configuration file"
+                        else
+                            flashMessage -d "Error! Config file was not removed."
+                        fi
 
-            # Reload ngnix
-            sudo service nginx restart |& tee -a "${logPath}log_${currentData}.log" &> /dev/null
-            flash "Reload nginx server"
+                        # Edit hosts file
+                        sudo sed -i "/127.0.0.1    localhost.localdomain $domainName www.$domainName/d" /etc/hosts
+                        flashMessage "Edit hosts file"
 
-            flash -o "Nice work! Your v-host is now active, you can looking this at the http://$confName/"
+                        # Remove symlink
+                        cd $_siteEnabled
+                        if [ -h "$domainName" ]; then 
+                            sudo rm $domainName
+                            flashMessage "Remove symlink"
+                        else
+                            flashMessage -d "Error! Symlink was not removed."
+                        fi
 
-        ;;
-        "rem")
+                        # Reload ngnix
+                        sudo service nginx restart |& tee -a "${_logPath}log_${currentData}.log" &> /dev/null
+                        flashMessage "Reload nginx server"
 
-            remName="$2.mira"
+                        flashMessage -i "Sucessfull, Now you haven't $domainName vhost!"
 
-            cd $directoryRoot
-            if [ -d "$remName" ]; then
-                echo -n "Are you sure? Delete $remName? (Yes/No) "
-                read tester
-                if [[ "$tester" =~ [yY] || [yY][eE][sS] ]]; then
-
-                    # Remove a root directory
-                    sudo rm -r $remName
-                    flash "Remove a root directory"
-
-                    # Remove a configuration file
-                    cd $siteAvaliable
-                    if [ -f "$remName" ]; then 
-                        sudo rm $remName
-                        flash "Remove a configuration file"
                     else
-                        flash -d "Error! Config file was not removed."
+                        flashMessage -d "You don't agree on delete, sory ..."
                     fi
-
-                    # Edit hosts file
-                    sudo sed -i "/127.0.0.1    localhost.localdomain $remName www.$remName/d" /etc/hosts # TODO // security 
-                    flash "Edit hosts file"
-
-                    # Remove symlink
-                    cd $siteEnabled
-                    if [ -h "$remName" ]; then 
-                        sudo rm $remName
-                        flash "Remove symlink"
-                    else
-                        flash -d "Error! Symlink was not removed."
-                    fi
-
-                    # Remove from pages list
-                    ### NEW FEATURE v3.0 ###
-
-                    # Reload ngnix
-                    sudo service nginx restart |& tee -a "${logPath}log_${currentData}.log" &> /dev/null
-                    flash "Reload nginx server"
-
-                    flash -i "Sucessfull, Now you haven't $remName vhost!"
-
-                else
-                    flash -d "You don't agree on delete, sory ..."
                 fi
-            fi
 
-        ;;
-        "list")
-            # LISTA VHOSTOW
-            ### NEW FEATURE v3.0 ###
-            exit 1;
-        ;;
-        *)
-            flash -d "Something went wrong! Please try again, remember about params..."
+            fi
+}
+
+# Basic script
+if [ $# -le 1 ]; then
+    
+    # Less then or equal 1 params
+    flashMessage -i "Usage: <action> <vhost-name>"
+
+elif [ $# -eq 2 ]; then
+
+    case "$1" in 
+        "add") addOption $@ ;;
+        "rem") remOption $@ ;;
+        *) flashMessage -d "Something went wrong! Please try again, remember about params..." ;;
     esac
+
 fi
