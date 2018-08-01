@@ -138,7 +138,8 @@ function addOption(){
     fi
 
     # Edit hosts file
-    sudo echo "127.0.0.1    localhost.localdomain $domainName www.$domainName" >> /etc/hosts
+    replace="127.0.0.1	localhost.localdomain $domainName www.$domainName"
+    sed -i -r "s/127.0.1.1.+/&\n${replace}/g" /etc/hosts
     flashMessage "Edit hosts file"
 
     # Add symlink
@@ -179,6 +180,7 @@ function remOption {
             else
 
                 cd $_directoryRoot
+
                 if [ -d "$domainName" ]; then
                     echo -n "Are you sure? Delete $domainName? (Yes/No) "
                     read bar
@@ -197,8 +199,8 @@ function remOption {
                             flashMessage -d "Error! Config file was not removed."
                         fi
 
-                        # Edit hosts file
-                        sudo sed -i "/127.0.0.1    localhost.localdomain $domainName www.$domainName/d" /etc/hosts
+                        # Edit hosts file - NOT WORKING!
+                        ##sudo sed -i "/127.0.0.1 .+ localhost.localdomain $domainName www.$domainName/gd" /etc/hosts
                         flashMessage "Edit hosts file"
 
                         # Remove symlink

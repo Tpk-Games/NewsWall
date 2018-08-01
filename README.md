@@ -23,8 +23,11 @@ Open script in your favourite editor, go to **168** line and change it.
 
 ## Todo:
 - [X] Own domain extension
-- [ ] Use sed replace echo in hosts file
+- [X] Use sed replace echo in hosts file
 - [X] Remove v-host
 - [ ] Edit v-host
 - [ ] View exists site list
 - [ ] Maybe Apache support
+
+## Bug:
+- Remove entry from hosts file
