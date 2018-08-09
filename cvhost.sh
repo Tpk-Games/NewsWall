@@ -227,17 +227,17 @@ function remOption {
 }
 
 # Basic script
-if [ $# -le 1 ]; then
-    
-    # Less then or equal 1 params
-    flashMessage -i "Usage: <action> <vhost-name>"
-
-elif [ $# -eq 2 ]; then
+if [ $# -eq 2 ]; then
 
     case "$1" in 
         "add") addOption $@ ;;
         "rem") remOption $@ ;;
         *) flashMessage -d "Something went wrong! Please try again, remember about params..." ;;
     esac
+
+else
+
+    # Error control
+    flashMessage -i "Usage: <action> <vhost-name>"
 
 fi
