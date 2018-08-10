@@ -81,8 +81,6 @@ function bootUp(){
 
     echo -n "log was writing in ${_logPath}log_${currentData}.log" 
     echo ""
-
-    ## PHP installed checker.
 }
 
 function addOption(){
@@ -200,7 +198,7 @@ function remOption {
                         fi
 
                         # Edit hosts file - NOT WORKING!
-                        ##sudo sed -i "/127.0.0.1 .+ localhost.localdomain $domainName www.$domainName/gd" /etc/hosts
+                        sudo sed -ri "/^127.0.0.1.+localhost\.localdomain.${domainName}.www\.${domainName}$/d" /etc/hosts
                         flashMessage "Edit hosts file"
 
                         # Remove symlink

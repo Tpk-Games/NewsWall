@@ -24,6 +24,3 @@ Additional at the top you can edit a paths in cvhost.sh file.
 - [ ] Edit v-host
 - [ ] View exists site list
 - [ ] Maybe Apache support
-
-## Bug:
-- Remove entry from hosts file
