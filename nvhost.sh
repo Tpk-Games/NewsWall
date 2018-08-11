@@ -84,7 +84,7 @@ function bootUp(){
 }
 
 function addOption(){
-            
+
     # Init message
     bootUp
 
@@ -227,11 +227,21 @@ function remOption {
 # Basic script
 if [ $# -eq 2 ]; then
 
-    case "$1" in 
-        "add") addOption $@ ;;
-        "rem") remOption $@ ;;
-        *) flashMessage -d "Something went wrong! Please try again, remember about params..." ;;
-    esac
+    # Software type checkout
+    if [ $0 == "./nvhost.sh" ]; then
+        
+        # Nginx commands block
+        case "$1" in 
+            "add") addOption $@ ;;
+            "rem") remOption $@ ;;
+            *) flashMessage -d "Something went wrong! Please try again, remember about params..." ;;
+        esac
+
+    else
+
+        # Apache commands block
+        flashMessage -w "Apache doesn't supported yet."
+    fi
 
 else
 
