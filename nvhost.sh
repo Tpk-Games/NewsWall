@@ -114,6 +114,21 @@ function addOption(){
     # Start script
     domainName=$(vaildDomain $2)
 
+    # Name require in yaml config file
+    domainYmlName=$(echo $domainName | sed -r 's/\./\_/')
+
+    # Create configuration file in home directory
+    echo "$domainYmlName:
+    port: 80
+    php: on
+        version: 7.2
+
+    " >> $_configFile
+
+    # Load script configuration
+    # @example: echo $site_com__php__version
+    eval $(parse_yaml $_configFile)
+
     # Create a root directory
     cd $_directoryRoot;
     if [ -d "$domainName" ]; then
@@ -123,7 +138,7 @@ function addOption(){
         flashMessage "Create a root directory."
     fi
 
-    # Create a configuration file
+    # Create a nginx configuration file
     cd $_siteAvaliable
 
     if [ -e $_siteAvaliable$domainName ]; then
