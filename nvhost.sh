@@ -12,6 +12,7 @@ _directoryRoot=/var/www/html/
 _siteAvaliable=/etc/nginx/sites-available/
 _siteEnabled=/etc/nginx/sites-enabled/
 _logPath=/var/log/vhost/
+_configFile=~/.vhost_config.yml
 _defaultExt="local"
 _defaultName="example"
 
@@ -46,6 +47,28 @@ function flashMessage(){
     else
         echo -e "${RED}Something went wrong!${NC} ${CYAN}Too much args.${NC}"
     fi
+}
+
+function parse_yaml {
+   local prefix=$2
+   local s='[[:space:]]*' w='[a-zA-Z0-9_]*' fs=$(echo @|tr @ '\034')
+   sed -ne "s|^\($s\):|\1|" \
+        -e "s|^\($s\)\($w\)$s:$s[\"']\(.*\)[\"']$s\$|\1$fs\2$fs\3|p" \
+        -e "s|^\($s\)\($w\)$s:$s\(.*\)$s\$|\1$fs\2$fs\3|p"  $1 |
+   awk -F$fs '{
+      indent = length($1)/2;
+      vname[indent] = $2;
+      for (i in vname) {if (i > indent) {delete vname[i]}}
+      if (length($3) > 0) {
+         vn=""; for (i=0; i<indent; i++) {vn=(vn)(vname[i])("_")}
+         printf("%s%s%s=\"%s\"\n", "'$prefix'",vn, $2, $3);
+      }
+   }'
+}
+
+# @params:   &1 - website | &2 - option | &3 - old_state | &4 - new_state
+function changeConfig {
+    grep "$1:" $_configFile | sed -ri 's/^(\s*)('"$2"'\s*:\s*'"$3"'\s*$)/\1'"$2"': '"$4"'/' $_configFile
 }
 
 function vaildDomain(){
